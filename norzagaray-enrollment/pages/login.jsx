@@ -6,6 +6,7 @@ export default function Login() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
@@ -13,7 +14,7 @@ export default function Login() {
     setError('');
     try {
       const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({ error: `The server returned an invalid response (HTTP ${response.status}).` }));
       if (!response.ok) throw new Error(data.error || 'Invalid username or password.');
       localStorage.setItem('norzagaray_user_role', data.user.role.toLowerCase());
       localStorage.setItem('norzagaray_user_profile', JSON.stringify({ userName: data.user.name, userRole: `${data.user.role} - ${data.user.department}`, department: data.user.department, program: data.user.program }));
@@ -39,7 +40,7 @@ export default function Login() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="w-full border-gray-300 rounded-lg p-2.5 border text-gray-800" />
+            <div className="flex gap-2"><input required type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="min-w-0 flex-1 border-gray-300 rounded-lg p-2.5 border text-gray-800" /><button type="button" onClick={() => setShowPassword((current) => !current)} className="border border-gray-300 rounded-lg px-3 text-sm font-bold text-blue-900">{showPassword ? 'Hide' : 'Show'}</button></div>
           </div>
           <button
             type="submit"

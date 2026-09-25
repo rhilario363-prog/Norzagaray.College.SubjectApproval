@@ -6,6 +6,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
@@ -13,7 +14,7 @@ export default function LoginPage() {
     setError('');
     try {
       const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({ error: `The server returned an invalid response (HTTP ${response.status}).` }));
       if (!response.ok) throw new Error(data.error || 'Invalid username or password.');
       localStorage.setItem('norzagaray_user_role', data.user.role.toLowerCase());
       localStorage.setItem('norzagaray_user_profile', JSON.stringify({ userName: data.user.name, userRole: `${data.user.role} - ${data.user.department}`, department: data.user.department, program: data.user.program }));
@@ -58,7 +59,7 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Password</label>
-              <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-900 focus:border-blue-900 outline-none transition text-sm text-gray-800" />
+              <div className="flex gap-2"><input required type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password" className="min-w-0 flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-900 focus:border-blue-900 outline-none transition text-sm text-gray-800" /><button type="button" onClick={() => setShowPassword((current) => !current)} className="border border-gray-300 rounded-xl px-3 text-sm font-bold text-blue-900">{showPassword ? 'Hide' : 'Show'}</button></div>
             </div>
 
             <button
