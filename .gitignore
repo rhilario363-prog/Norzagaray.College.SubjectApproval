@@ -1,0 +1,17 @@
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+norzagaray-enrollment/.env
+norzagaray-enrollment/.env.*
+!norzagaray-enrollment/.env.example
+
+# Dependencies and generated output
+**/node_modules/
+**/.next/
+**/out/
+**/coverage/
+**/build/
+*.pem
+npm-debug.log*
+.vercel/

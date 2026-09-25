@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd norzagaray-enrollment && npm run build",
+  "installCommand": "cd norzagaray-enrollment && npm install",
+  "devCommand": "cd norzagaray-enrollment && npm run dev"
+}

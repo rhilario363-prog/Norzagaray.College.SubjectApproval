@@ -1,0 +1,156 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  STUDENT
+  ADVISER
+  ADMIN
+}
+
+enum AccountStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Department {
+  BEED
+  BSED
+  BSHM
+  BSCS
+  ACT
+  GENERAL
+}
+
+enum StudentStatus {
+  ACTIVE
+  NOT_ENROLLED
+  STOPPED
+  GRADUATED
+  TRANSFEREE
+}
+
+enum StudentType {
+  REGULAR
+  TRANSFEREE
+  RETURNEE
+}
+
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SubjectStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  username       String          @unique
+  passwordHash   String
+  name           String
+  role           Role            @default(STUDENT)
+  accountStatus  AccountStatus   @default(PENDING)
+  approvedAt     DateTime?
+  department     Department      @default(GENERAL)
+  program        String?
+  emailVerifiedAt DateTime?
+  studentProfile StudentProfile?
+  emailTokens    EmailToken[]
+  courses        Course[]        @relation("CourseSubmitter")
+  createdAt      DateTime        @default(now())
+}
+
+model StudentProfile {
+  id                String       @id @default(uuid())
+  userId            String       @unique
+  user              User         @relation(fields: [userId], references: [id])
+  studentIdNo       String       @unique
+  course            String
+  department        Department  @default(GENERAL)
+  yearLevel         Int
+  isUniFastEligible Boolean      @default(true)
+  isGraduated       Boolean      @default(false)
+  studentType       StudentType  @default(REGULAR)
+  status            StudentStatus @default(ACTIVE)
+  programDurationYears Int        @default(4)
+  transferSchool    String?
+  transferCredits   Int           @default(0)
+  lastEnrolledAt    DateTime?
+  stoppedAt         DateTime?
+  enrollments       Enrollment[]
+}
+
+model Course {
+  id          String       @id @default(uuid())
+  code        String       @unique
+  title       String
+  units       Int
+  schedule    String
+  yearLevel   Int          @default(1)
+  section     String       @default("Section TBA")
+  room        String       @default("Room TBA")
+  day         String       @default("")
+  time        String       @default("")
+  prereq      String?
+  department  Department  @default(GENERAL)
+  archived    Boolean      @default(false)
+  status      SubjectStatus @default(APPROVED)
+  submittedById String?
+  submittedBy User?       @relation("CourseSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
+  reviewedAt  DateTime?
+  enrollments Enrollment[]
+  @@index([department, status])
+}
+
+model Enrollment {
+  id               String           @id @default(uuid())
+  studentProfileId String
+  studentProfile   StudentProfile   @relation(fields: [studentProfileId], references: [id])
+  courseId         String
+  course           Course           @relation(fields: [courseId], references: [id])
+  status           EnrollmentStatus @default(PENDING)
+  adviserApproved  Boolean          @default(false)
+  academicTerm     String
+  createdAt        DateTime         @default(now())
+}
+
+model Application {
+  id             String          @id @default(cuid())
+  applicationNo  String          @unique
+  studentName    String
+  studentIdNo    String
+  program        String
+  department     Department      @default(GENERAL)
+  units          Int
+  uniFast        String          @default("Eligible")
+  status         EnrollmentStatus @default(PENDING)
+  adviserStatus  String          @default("Pending")
+  subjects       Json
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model EmailToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  type       String
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+  @@index([userId, type])
+}
