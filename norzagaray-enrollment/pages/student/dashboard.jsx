@@ -19,7 +19,7 @@ const timeToMinutes = (value) => {
 };
 
 const subjectConflicts = (first, second) => {
-  const parseDays = (value = '') => { const upper = value.toUpperCase(); const withoutThursday = upper.replaceAll('TH', ''); return ['M', 'T', 'W', 'TH', 'F'].filter((day) => day === 'TH' ? upper.includes('TH') : withoutThursday.includes(day)); };
+  const parseDays = (value = '') => { const upper = value.toUpperCase(); const withoutThursday = upper.replaceAll('TH', ''); return ['M', 'T', 'W', 'TH', 'F', 'SA'].filter((day) => day === 'TH' ? upper.includes('TH') : withoutThursday.includes(day)); };
   const sharesDay = parseDays(first.day).some((day) => parseDays(second.day).includes(day));
   if (!sharesDay) return false;
   const [firstStart, firstEnd] = first.time.split('-').map((value) => timeToMinutes(value));

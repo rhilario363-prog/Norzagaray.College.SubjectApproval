@@ -6,7 +6,44 @@ import { getSubjects, saveSubjects, subscribeToAcademicData } from '../../lib/ac
 import { getApplications, subscribeToApplications, syncApplications } from '../../lib/enrollmentStore';
 
 const emptySubject = { code: '', title: '', units: 3, department: 'BEED', yearLevel: 1, section: '', room: '', days: [], startTime: '08:00', endTime: '09:30' };
-const DAYS = [['M', 'Monday'], ['T', 'Tuesday'], ['W', 'Wednesday'], ['TH', 'Thursday'], ['F', 'Friday']];
+const DAYS = [['M', 'Monday'], ['T', 'Tuesday'], ['W', 'Wednesday'], ['TH', 'Thursday'], ['F', 'Friday'], ['SA', 'Saturday']];
+const MAX_SCAN_IMAGE_BYTES = 350 * 1024;
+
+const compressScanImage = async (file) => {
+  const image = await createImageBitmap(file);
+  try {
+    const canvas = document.createElement('canvas');
+    let scale = Math.min(1, 1600 / Math.max(image.width, image.height));
+    let quality = 0.82;
+    let blob;
+
+    while (true) {
+      canvas.width = Math.round(image.width * scale);
+      canvas.height = Math.round(image.height * scale);
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('The selected image could not be prepared.');
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+      if (!blob) throw new Error('The selected image could not be prepared.');
+      if (blob.size <= MAX_SCAN_IMAGE_BYTES) break;
+      if (quality > 0.52) quality = Math.max(0.52, quality - 0.1);
+      else {
+        scale *= 0.8;
+        quality = 0.82;
+      }
+      if (scale < 0.25) throw new Error('A photo could not be compressed enough. Try a smaller image.');
+    }
+
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ mimeType: 'image/jpeg', data: String(reader.result).split(',')[1] });
+      reader.onerror = () => reject(new Error('A photo could not be read.'));
+      reader.readAsDataURL(blob);
+    });
+  } finally {
+    image.close();
+  }
+};
 
 const getSubjectDays = (day = '') => {
   const upper = day.toUpperCase();
@@ -77,23 +114,27 @@ function AdviserDashboardContent() {
     return data.course;
   };
 
+  const updateSubjectRequest = async (subject) => {
+    const response = await fetch('/api/courses', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(subject) });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Subject changes could not be saved.');
+    return data.course;
+  };
+
   const scanSubjectImages = async () => {
     if (!scanFiles.length) {
       setNotice('Choose one or more subject photos first.');
       return;
     }
     setScanning(true);
-    setNotice('Reading subject photos...');
+    setNotice('Preparing subject photos...');
     try {
       if (scanFiles.some((file) => !file.type.startsWith('image/') || file.size > 8 * 1024 * 1024)) {
         throw new Error('Use image files smaller than 8 MB each.');
       }
-      const images = await Promise.all(scanFiles.map((file) => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve({ mimeType: file.type, data: String(reader.result).split(',')[1] });
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      })));
+      const images = [];
+      for (const file of scanFiles) images.push(await compressScanImage(file));
+      setNotice('Reading subject photos...');
       const response = await fetch('/api/ai/subjects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ images }) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || `Subject photos could not be read (HTTP ${response.status}).`);
@@ -133,7 +174,14 @@ function AdviserDashboardContent() {
     const day = subjectForm.days.join('');
     const subject = { ...subjectForm, id: `SUB-${Date.now()}`, code: subjectForm.code.trim().toUpperCase(), title: subjectForm.title.trim(), units: Number(subjectForm.units), yearLevel: Number(subjectForm.yearLevel), section: subjectForm.section.trim() || 'Section TBA', room: subjectForm.room.trim() || 'Room TBA', day, time, schedule: `${day} ${time}`, archived: false };
     try {
-      if (editingId) throw new Error('Editing an existing subject is disabled while it is under admin review.');
+      if (editingId) {
+        const updated = await updateSubjectRequest({ ...subject, id: editingId });
+        setSubjects((current) => current.map((item) => item.id === editingId ? updated : item));
+        setEditingId(null);
+        setSubjectForm(emptySubject);
+        setNotice(`${updated.code} was updated.`);
+        return;
+      }
       const created = await submitSubjectRequest(subject);
       setSubjects((current) => [...current, created]);
       setSubjectForm(emptySubject);
@@ -177,7 +225,7 @@ function AdviserDashboardContent() {
             <div className="grid grid-cols-2 gap-2"><input aria-label="Class start time" type="time" value={subjectForm.startTime} onChange={(event) => updateSubject('startTime', event.target.value)} className="border border-slate-300 rounded-lg px-3 py-2 text-sm" /><input aria-label="Class end time" type="time" value={subjectForm.endTime} onChange={(event) => updateSubject('endTime', event.target.value)} className="border border-slate-300 rounded-lg px-3 py-2 text-sm" /></div>
             <button className="bg-blue-950 text-yellow-400 font-bold rounded-lg px-4 py-2 text-sm" type="submit">{editingId ? 'Save changes' : 'Add subject'}</button>{editingId && <button type="button" onClick={() => { setEditingId(null); setSubjectForm(emptySubject); }} className="border border-slate-300 text-blue-950 font-bold rounded-lg px-4 py-2 text-sm">Cancel</button>}
           </form>
-          <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500"><th className="p-3">Code</th><th className="p-3">Title</th><th className="p-3">Department</th><th className="p-3">Year</th><th className="p-3">Units</th><th className="p-3">Day / time</th><th className="p-3">Room</th><th className="p-3">Approval</th></tr></thead><tbody className="divide-y divide-slate-100">{subjects.map((subject) => <tr key={subject.id} className={subject.archived ? 'opacity-60' : ''}><td className="p-3 font-black text-blue-950">{subject.code}</td><td className="p-3 font-semibold">{subject.title}<span className="block text-xs text-slate-500">{subject.section || 'Section TBA'}</span></td><td className="p-3">{subject.department}</td><td className="p-3">Year {subject.yearLevel || 1}</td><td className="p-3">{subject.units}</td><td className="p-3 text-slate-500">{subject.day} {subject.time}</td><td className="p-3 text-slate-500">{subject.room || 'Room TBA'}</td><td className="p-3"><span className={`rounded-full px-2 py-1 text-xs font-bold ${subject.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700' : subject.status === 'REJECTED' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}`}>{subject.status || 'LOCAL'}</span></td></tr>)}</tbody></table></div>
+          <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500"><th className="p-3">Code</th><th className="p-3">Title</th><th className="p-3">Department</th><th className="p-3">Year</th><th className="p-3">Units</th><th className="p-3">Day / time</th><th className="p-3">Room</th><th className="p-3">Approval</th><th className="p-3">Actions</th></tr></thead><tbody className="divide-y divide-slate-100">{subjects.map((subject) => <tr key={subject.id} className={subject.archived ? 'opacity-60' : ''}><td className="p-3 font-black text-blue-950">{subject.code}</td><td className="p-3 font-semibold">{subject.title}<span className="block text-xs text-slate-500">{subject.section || 'Section TBA'}</span></td><td className="p-3">{subject.department}</td><td className="p-3">Year {subject.yearLevel || 1}</td><td className="p-3">{subject.units}</td><td className="p-3 text-slate-500">{subject.day} {subject.time}</td><td className="p-3 text-slate-500">{subject.room || 'Room TBA'}</td><td className="p-3"><span className={`rounded-full px-2 py-1 text-xs font-bold ${subject.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700' : subject.status === 'REJECTED' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}`}>{subject.status || 'LOCAL'}</span></td><td className="p-3">{subject.canEdit && <button type="button" onClick={() => editSubject(subject)} className="text-xs font-bold text-blue-800 hover:underline">Edit</button>}</td></tr>)}</tbody></table></div>
         </section>
 
         <section className="print-section bg-white rounded-2xl border border-slate-200 shadow-sm p-6"><div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5"><div><h2 className="text-lg font-bold text-blue-950">Student Subject Enrollments</h2><p className="text-xs text-slate-500">Students who selected each subject.</p></div><button type="button" onClick={() => window.print()} className="print-hide bg-blue-950 text-yellow-400 font-bold rounded-lg px-4 py-2 text-sm">Print roster</button></div><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500"><th className="p-3">Student</th><th className="p-3">Student ID</th><th className="p-3">Program</th><th className="p-3">Subject</th><th className="p-3">Schedule</th><th className="p-3">Load status</th></tr></thead><tbody className="divide-y divide-slate-100">{enrollmentRows.map(({ application, subject }, index) => <tr key={`${application.id}-${subject.id || subject.code}-${index}`}><td className="p-3 font-semibold">{application.studentName}</td><td className="p-3">{application.idNo}</td><td className="p-3">{application.course}</td><td className="p-3 font-bold text-blue-950">{subject.code} - {subject.title}</td><td className="p-3 text-slate-500">{subject.schedule || `${subject.day} ${subject.time}`}</td><td className="p-3">{application.status}</td></tr>)}{!enrollmentRows.length && <tr><td colSpan="6" className="p-6 text-center text-sm text-slate-500">No students have selected a subject yet.</td></tr>}</tbody></table></div></section>

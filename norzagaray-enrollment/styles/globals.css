@@ -62,6 +62,7 @@ html.dark .text-gray-900,
 html.dark .text-slate-900,
 html.dark .text-slate-800,
 html.dark .text-slate-700,
+html.dark .text-gray-800,
 html.dark .text-blue-950 {
   color: #f8fafc !important;
 }

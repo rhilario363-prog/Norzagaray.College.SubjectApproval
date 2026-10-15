@@ -45,7 +45,7 @@ export default function GeminiChatWidget({ studentContext, onAutoPopulate }) {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div className="fixed bottom-5 right-5 z-[60]">
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg font-semibold hover:bg-blue-700 transition-all"

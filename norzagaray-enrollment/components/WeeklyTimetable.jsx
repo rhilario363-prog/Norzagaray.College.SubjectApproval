@@ -3,7 +3,7 @@ import React from 'react';
 const DAYS = [
   { key: 'M', label: 'Monday' }, { key: 'T', label: 'Tuesday' },
   { key: 'W', label: 'Wednesday' }, { key: 'TH', label: 'Thursday' },
-  { key: 'F', label: 'Friday' },
+  { key: 'F', label: 'Friday' }, { key: 'SA', label: 'Saturday' },
 ];
 
 const TIME_SLOTS = ['07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM'];
@@ -33,6 +33,7 @@ const parseDays = (dayStr) => {
   if (upper.replaceAll('TH', '').includes('T')) matched.push('T');
   if (upper.includes('W')) matched.push('W');
   if (upper.includes('F')) matched.push('F');
+  if (upper.includes('SA')) matched.push('SA');
   return matched;
 };
 
@@ -52,11 +53,11 @@ export default function WeeklyTimetable({ subjects = [], selectedCourses = [], a
       </div>
       <div className="overflow-x-auto">
         <div className="min-w-[700px]">
-          <div className="grid grid-cols-6 border-b text-center text-xs font-semibold text-gray-600 bg-gray-100">
+          <div className="grid grid-cols-7 border-b text-center text-xs font-semibold text-gray-600 bg-gray-100">
             <div className="p-2.5 border-r text-gray-400">Time</div>
             {DAYS.map((d) => <div key={d.key} className="p-2.5 border-r">{d.label}</div>)}
           </div>
-          <div className="relative grid grid-cols-6 h-[728px]">
+          <div className="relative grid grid-cols-7 h-[728px]">
             <div className="col-span-1 border-r grid grid-rows-14 text-[11px] text-gray-400 font-medium">
               {TIME_SLOTS.map((slot, idx) => (
                 <div key={idx} className="border-b p-1 pl-2">{slot}</div>
