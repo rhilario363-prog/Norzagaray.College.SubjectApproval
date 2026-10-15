@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Link from 'next/link';
+import ThemeToggle from './ThemeToggle';
 
 export default function Header({ title, userName = 'Juan Dela Cruz', userRole = 'Irregular Student (BSCS)' }) {
   const router = useRouter();
@@ -51,6 +52,7 @@ export default function Header({ title, userName = 'Juan Dela Cruz', userRole = 
             A.Y. 2026–2027
           </span>
           {title && <span className="hidden xl:block text-xs text-blue-200 border-l border-blue-700 pl-4">{title}</span>}
+          <ThemeToggle />
           <Link href="/settings" className="text-xs font-bold text-white/80 hover:text-white transition">Settings</Link>
           <button onClick={handleLogout} className="text-xs font-bold text-white/80 hover:text-white transition" type="button">
             Sign out

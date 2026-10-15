@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ floating = false }) {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
@@ -18,5 +18,5 @@ export default function ThemeToggle() {
     setDark(nextDark);
   };
 
-  return <button type="button" onClick={toggleTheme} aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'} title={dark ? 'Light theme' : 'Dark theme'} className="theme-toggle">{dark ? 'Light' : 'Dark'}</button>;
+  return <button type="button" onClick={toggleTheme} aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'} title={dark ? 'Light theme' : 'Dark theme'} className={`theme-toggle${floating ? ' theme-toggle--floating' : ''}`}>{dark ? 'Light' : 'Dark'}</button>;
 }
