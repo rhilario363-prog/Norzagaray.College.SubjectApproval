@@ -1,8 +1,6 @@
 import Image from 'next/image';
 
-const formatPesos = (amount) => `PHP ${amount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
-
-export default function CertificateOfRegistration({ profile, subjects, totalUnits, ratePerUnit }) {
+export default function CertificateOfRegistration({ profile, subjects, totalUnits }) {
   return (
     <section className="cor-print-area hidden print:block bg-white text-slate-900 p-8 max-w-5xl mx-auto">
       <div className="flex items-center gap-4 border-b-2 border-blue-950 pb-4">
@@ -31,7 +29,6 @@ export default function CertificateOfRegistration({ profile, subjects, totalUnit
             <th className="border border-blue-950 p-3 text-left">Schedule</th>
             <th className="border border-blue-950 p-3 text-left">Section / Room</th>
             <th className="border border-blue-950 p-3 text-right">Units</th>
-            <th className="border border-blue-950 p-3 text-right">Amount</th>
           </tr>
         </thead>
         <tbody>
@@ -42,19 +39,17 @@ export default function CertificateOfRegistration({ profile, subjects, totalUnit
               <td className="border border-slate-300 p-3">{subject.schedule || `${subject.day} ${subject.time}`}</td>
               <td className="border border-slate-300 p-3">{subject.section || 'TBA'}<br />{subject.room || 'TBA'}</td>
               <td className="border border-slate-300 p-3 text-right">{subject.units}</td>
-              <td className="border border-slate-300 p-3 text-right">{formatPesos(subject.units * ratePerUnit)}</td>
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr>
-            <td colSpan="4" className="border border-slate-300 p-3 text-right font-bold">Total</td>
+            <td colSpan="4" className="border border-slate-300 p-3 text-right font-bold">Total Units</td>
             <td className="border border-slate-300 p-3 text-right font-bold">{totalUnits}</td>
-            <td className="border border-slate-300 p-3 text-right font-bold">{formatPesos(totalUnits * ratePerUnit)}</td>
           </tr>
         </tfoot>
       </table>
-      <p className="mt-5 text-xs text-slate-600">Assessment rate: {formatPesos(ratePerUnit)} per credit unit. This document is a printable enrollment preview.</p>
+      <p className="mt-5 text-xs text-slate-600">This document is a printable enrollment preview.</p>
       <div className="grid grid-cols-2 gap-12 mt-20 text-center text-sm">
         <div className="border-t border-slate-700 pt-2">Student Signature</div>
         <div className="border-t border-slate-700 pt-2">Registrar Signature</div>

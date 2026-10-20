@@ -8,7 +8,6 @@ import { createApplication, getApplications, subscribeToApplications, syncApplic
 import { DEFAULT_SUBJECTS, getSubjects, subscribeToAcademicData } from '../../lib/academicStore';
 
 const DEFAULT_PROFILE = { userName: 'Juan Dela Cruz', idNo: 'NC-2024-0012', department: 'BSCS', program: 'Bachelor of Science in Computer Science' };
-const RATE_PER_UNIT = 50;
 
 const timeToMinutes = (value) => {
   const [time, modifier] = value.trim().split(' ');
@@ -34,7 +33,6 @@ function StudentDashboardContent() {
   const [notice, setNotice] = useState('');
   const [yearFilter, setYearFilter] = useState('ALL');
   const totalUnits = selectedCourses.reduce((acc, curr) => acc + curr.units, 0);
-  const totalCost = totalUnits * RATE_PER_UNIT;
 
   useEffect(() => {
     const storedProfile = window.localStorage.getItem('norzagaray_user_profile');
@@ -162,11 +160,6 @@ function StudentDashboardContent() {
               <span className={`text-base ${totalUnits > 21 ? 'text-rose-600' : 'text-blue-950'}`}>{totalUnits} / 21</span>
             </div>
 
-            <div className="flex items-center justify-between text-sm font-bold text-slate-800 mb-5">
-              <span>Assessment ({RATE_PER_UNIT} PHP / unit):</span>
-              <span className="text-blue-950">PHP {totalCost.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
-            </div>
-
             <button 
               onClick={submitApplication}
               className="w-full bg-yellow-500 hover:bg-yellow-600 text-blue-950 font-extrabold py-3 rounded-xl shadow-md transition text-sm tracking-wide"
@@ -185,7 +178,7 @@ function StudentDashboardContent() {
           />
         </div>
       </main>
-      <CertificateOfRegistration profile={profile} subjects={selectedCourses} totalUnits={totalUnits} ratePerUnit={RATE_PER_UNIT} />
+      <CertificateOfRegistration profile={profile} subjects={selectedCourses} totalUnits={totalUnits} />
     </div>
   );
 }
