@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "db:seed:bscs": "node prisma/seed-bscs.mjs"
   },
   "prisma": {
     "seed": "node prisma/seed.mjs"

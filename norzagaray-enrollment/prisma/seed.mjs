@@ -1,5 +1,10 @@
 import crypto from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
+import nextEnv from '@next/env';
+import { BSCS_SAMPLE_CURRICULUM } from '../lib/bscsSampleCurriculum.mjs';
+
+const { loadEnvConfig } = nextEnv;
+loadEnvConfig(process.cwd());
 
 const prisma = new PrismaClient();
 const hashPassword = (password) => {
@@ -12,6 +17,7 @@ const staff = [
   ['adviser.beed', 'adviser.beed@norzagaray.edu.ph', 'Liza Cruz', 'ADVISER', 'BEED'],
   ['adviser.bsed', 'adviser.bsed@norzagaray.edu.ph', 'Mark Reyes', 'ADVISER', 'BSED'],
   ['adviser.bshm', 'adviser.bshm@norzagaray.edu.ph', 'Nina Garcia', 'ADVISER', 'BSHM'],
+  ['adviser.bscs', 'adviser.bscs@norzagaray.edu.ph', 'BSCS Adviser', 'ADVISER', 'BSCS'],
   ['adviser.general', 'adviser.general@norzagaray.edu.ph', 'Omar Flores', 'ADVISER', 'GENERAL'],
 ];
 
@@ -44,10 +50,10 @@ const subjects = [
   ['BEED101', 'Foundations of Education', 3, 'MWF 08:00 AM - 09:30 AM', 'BEED'],
   ['BSED101', 'Principles of Teaching', 3, 'TTH 08:00 AM - 09:30 AM', 'BSED'],
   ['BSHM101', 'Hospitality Operations', 3, 'MWF 06:30 PM - 08:00 PM', 'BSHM'],
-  ['CS101', 'Intro to Computing', 3, 'MWF 08:00 AM - 09:30 AM', 'BSCS'],
+  ...BSCS_SAMPLE_CURRICULUM.map(({ code, title, units, yearLevel }) => [code, title, units, 'Schedule TBA', 'BSCS', yearLevel]),
 ];
-for (const [code, title, units, schedule, department] of subjects) {
-  await prisma.course.upsert({ where: { code }, update: { title, units, schedule, department, archived: false }, create: { code, title, units, schedule, department } });
+for (const [code, title, units, schedule, department, yearLevel = 1] of subjects) {
+  await prisma.course.upsert({ where: { code }, update: { title, units, schedule, department, yearLevel, archived: false }, create: { code, title, units, schedule, department, yearLevel } });
 }
 
 console.log('Seeded admin/admin, staff accounts, and student demo accounts with Student123!.');

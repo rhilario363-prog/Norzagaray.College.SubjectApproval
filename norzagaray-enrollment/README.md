@@ -16,7 +16,9 @@ The current browser demo uses local storage so it can run without provisioning a
 
 ## Online deployment setup
 
-Set `DATABASE_URL`, `DIRECT_URL`, `GEMINI_API_KEY`, and a long random `SESSION_SECRET` in the hosting provider's server environment. From the project root, run `npm run db:generate`, `npm run db:push`, and `npm run db:seed` once. Seeded accounts use `admin`, `adviser.beed`, `adviser.bsed`, `adviser.bshm`, and `adviser.general` with the temporary password `ChangeMe123!`; change those passwords immediately after first login.
+Set `DATABASE_URL`, `DIRECT_URL`, `GEMINI_API_KEY`, and a long random `SESSION_SECRET` in the hosting provider's server environment. From the project root, run `npm run db:generate`, `npm run db:push`, and `npm run db:seed` once. Seeded accounts use `admin`, `adviser.beed`, `adviser.bsed`, `adviser.bshm`, `adviser.bscs`, and `adviser.general` with the temporary password `ChangeMe123!`; change those passwords immediately after first login.
+
+The sample BSCS curriculum includes courses assigned to years 1-4, with schedules and rooms marked TBA. It is a demo curriculum, not Norzagaray College's official curriculum; have the department verify course titles, codes, units, prerequisites, and term placement before using it for actual enrollment. To add only the BSCS adviser and any missing sample courses to an existing database without reseeding other accounts, run `npm run db:seed:bscs`. The new adviser login is `adviser.bscs` with temporary password `ChangeMe123!`; change it immediately.
 
 For Gmail verification and password recovery, configure `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `MAIL_FROM`, and `NEXT_PUBLIC_APP_URL`. Use a Gmail App Password, not the normal Gmail password. Public registration supports students and professor requests. Professor requests are always pending until an administrator approves them; a student cannot promote their own account by changing a form field.
 

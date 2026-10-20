@@ -1,3 +1,5 @@
+import { BSCS_SAMPLE_CURRICULUM } from './bscsSampleCurriculum.mjs';
+
 const SUBJECTS_KEY = 'norzagaray_academic_subjects';
 const STUDENTS_KEY = 'norzagaray_academic_students';
 const ACADEMIC_EVENT = 'norzagaray:academic-updated';
@@ -6,8 +8,18 @@ export const DEFAULT_SUBJECTS = [
   { id: '1', code: 'BEED101', title: 'Foundations of Education', units: 3, department: 'BEED', yearLevel: 1, section: 'BEED 1A', room: 'Room 201', day: 'MWF', time: '08:00 AM - 09:30 AM', schedule: 'MWF 08:00 AM - 09:30 AM', archived: false },
   { id: '2', code: 'BSED101', title: 'Principles of Teaching', units: 3, department: 'BSED', yearLevel: 1, section: 'BSED 1A', room: 'Room 202', day: 'TTH', time: '08:00 AM - 09:30 AM', schedule: 'TTH 08:00 AM - 09:30 AM', archived: false },
   { id: '3', code: 'BSHM101', title: 'Hospitality Operations', units: 1, department: 'BSHM', yearLevel: 1, section: 'BSHM 1A', room: 'Lab 1', day: 'MWF', time: '06:30 PM - 08:00 PM', schedule: 'MWF 06:30 PM - 08:00 PM', archived: false },
-  { id: '4', code: 'CS101', title: 'Intro to Computing', units: 3, department: 'BSCS', yearLevel: 1, section: 'BSCS 1A', room: 'ICT Lab 1', day: 'MWF', time: '08:00 AM - 09:30 AM', schedule: 'MWF 08:00 AM - 09:30 AM', archived: false },
   { id: '5', code: 'ACT101', title: 'Computer Fundamentals', units: 3, department: 'ACT', yearLevel: 1, section: 'ACT 1A', room: 'ICT Lab 2', day: 'TTH', time: '06:30 PM - 08:00 PM', schedule: 'TTH 06:30 PM - 08:00 PM', archived: false },
+  ...BSCS_SAMPLE_CURRICULUM.map((subject) => ({
+    ...subject,
+    id: subject.code,
+    department: 'BSCS',
+    section: `BSCS ${subject.yearLevel}A`,
+    room: 'Room TBA',
+    day: '',
+    time: '',
+    schedule: 'Schedule TBA',
+    archived: false,
+  })),
 ];
 
 export const DEFAULT_STUDENTS = [
